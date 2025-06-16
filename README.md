@@ -7,3 +7,6 @@ hk-highspeed-pwa
 ### TODOs
 - [ ] Cards generation
 - [ ] query
+
+### Tools
+- [Markdown Tables generator - TablesGenerator.com](https://www.tablesgenerator.com/markdown_tables)
