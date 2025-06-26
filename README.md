@@ -9,5 +9,11 @@ hk-highspeed-pwa
 - [ ] query
 - [ ] integration
   - [ ] https://shike.gaotie.cn/checi.asp?checi=G5610
+     
+### Notes
+- G56XX車次為深圳北
+- G58XX車次為福田
+- G658X車次為廣州南
+
 ### Tools
 - [Markdown Tables generator - TablesGenerator.com](https://www.tablesgenerator.com/markdown_tables)
