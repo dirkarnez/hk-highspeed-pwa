@@ -12,12 +12,10 @@
       .then(async jsCode => {
         eval(jsCode); // pdfmake is declared
         if (!!pdfmake) {
-          debugger;
           // https://pdfmake.github.io/docs/0.1/getting-started/client-side/
           // (<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
           pdfmake.pdfMake.vfs = pdfmake.pdfFonts.pdfMake.vfs;
           await process(pdfmake.pdfMake);
-          debugger;
         }
       })
       .then(() => {
@@ -41,11 +39,11 @@
 
     async function process(pdfMake) {
       // must use own fonts (files or urls) to avoid dependenting on client-side font. Some OSes may not have some common fonts.
-    //   pdfMake.fonts = {
-    //     Times: {
-    //       normal: 'https://fonts.cdnfonts.com/s/57197/times.woff'
-    //     }
-    //   };
+      pdfMake.fonts = {
+        Google: {
+          normal: 'http://fonts.gstatic.com/ea/notosanstc/v1/NotoSansTC-Regular.woff'
+        }
+      };
         const data = await getData()
         .then(data => (
             data.map(a => ({...a, gate: fifteenMinutesBefore(a["departure"])}))
@@ -56,24 +54,70 @@
         const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
         const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
         
-        generate(dataForSouth);
-        generate(dataForNorth);
-        generate(dataFor82Lift);
-        generate(dataForShort);
+        generate("South", dataForSouth, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
+        generate("North", dataForNorth, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
+        generate("82 Lift", dataFor82Lift, ["train_arrival", "to", "arrival", "train_departure", "gate", "departure"], ['*','*','*','*','*','*']);
+        generate("Short", dataForShort, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
     }
 
 
-    function generate(data) {
+    function generate(title, data, fields, widths) {
+        // const content = Array.from({ length: 9 }, (_) => {
+        //         return {
+        //                 table: {
+        //                     widths,
+        //                     body: [
+        //                         fields,
+        //                         ...data.map(row => fields.map(field => row[field]))
+        //                     ]
+        //             }
+        //         };
+        //     })
+        //     .map((elem, index, array) => {
+        //         return [ {text: title}, (index < array.length - 1 ? ({...elem, pageBreak: 'after'}) : elem)]
+        //     });
+            
+        // // debugger;
+        // var docDefinition = {
+        //     pageOrientation: 'landscape',
+        //     content
+        // };
+
+
         var docDefinition = {
-            content: [
-                'First paragraph',
-                'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
-            ]
+            pageOrientation: 'landscape',
+	        pageMargins: 0,
+            content: [ 
+                title,
+                {
+                    table: {
+                        widths,
+                        body: [
+                            fields.map(field => ({text: field, color: "white"})),
+                            ...data.map(row => fields.map(field => row[field]))
+                        ]
+                    },
+                    layout: {
+                        fillColor: function (rowIndex, node, columnIndex) {
+                            return (rowIndex % 2 === 0) ? (rowIndex === 0 ? '#0' : '#CCCCCC') : null;
+                        },
+                        // color: function (rowIndex, node, columnIndex) {
+                        //     return rowIndex === 0 ? 'black' : 'white';
+                        // },
+                    }
+                }
+            ],
+            defaultStyle: {
+                font: "Google",
+                fontSize: 15
+            }
         };
+            
+        
 
       pdfMake
       .createPdf(docDefinition)
-      .download('document.pdf');
+      .download(`${title}.pdf`);
     }
 
     
