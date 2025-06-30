@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <script>
+    (() => {
+      fetch("./pdfmake.0.2.10.min.js")
+      .then(data => data.text())
+      .then(async jsCode => {
+        eval(jsCode); // pdfmake is declared
+        if (!!pdfmake) {
+          debugger;
+          // https://pdfmake.github.io/docs/0.1/getting-started/client-side/
+          // (<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
+          pdfmake.pdfMake.vfs = pdfmake.pdfFonts.pdfMake.vfs;
+          await process(pdfmake.pdfMake);
+          debugger;
+        }
+      })
+      .then(() => {
+        console.log(`pdfmake is released.`)
+      })
+    })()
+
+    async function getData() {
+        try {
+            const response = await fetch("./data.json");
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            return await response.json();
+            console.log(json);
+        } catch (error) {
+            console.error(error.message);
+        }
+    }
+    
+
+    async function process(pdfMake) {
+      // must use own fonts (files or urls) to avoid dependenting on client-side font. Some OSes may not have some common fonts.
+    //   pdfMake.fonts = {
+    //     Times: {
+    //       normal: 'https://fonts.cdnfonts.com/s/57197/times.woff'
+    //     }
+    //   };
+        const data = await getData()
+        .then(data => (
+            data.map(a => ({...a, gate: fifteenMinutesBefore(a["departure"])}))
+        ));
+    
+        const dataForShort = data.filter(item => Number(item["platform"]) > 8);
+        const dataForSouth = data.filter(item => !(Number(item["platform"]) > 8));
+        const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
+        const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
+        
+        generateSouth(dataForSouth);
+        generateNorth(dataForNorth);
+        generate82Lift(dataFor82Lift);
+        generateShort(dataForShort);
+
+        var docDefinition = {
+            content: [
+                'First paragraph',
+                'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.'
+            ]
+        };
+
+      pdfMake
+      .createPdf(docDefinition)
+      .download('document.pdf');
+    }
+
+    function fifteenMinutesBefore(departureTimeString) {
+        const [hours, minutes] = departureTimeString.split(":").map(Number);
+        
+        const date = new Date();
+        date.setHours(hours);
+        date.setMinutes(minutes - 15);
+
+        const newHours = String(date.getHours()).padStart(2, '0');
+        const newMinutes = String(date.getMinutes()).padStart(2, '0');
+        return `${newHours}:${newMinutes}`;
+    }
+  </script>
+</body>
+</html>
