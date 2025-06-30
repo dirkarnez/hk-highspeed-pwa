@@ -56,11 +56,14 @@
         const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
         const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
         
-        generateSouth(dataForSouth);
-        generateNorth(dataForNorth);
-        generate82Lift(dataFor82Lift);
-        generateShort(dataForShort);
+        generate(dataForSouth);
+        generate(dataForNorth);
+        generate(dataFor82Lift);
+        generate(dataForShort);
+    }
 
+
+    function generate(data) {
         var docDefinition = {
             content: [
                 'First paragraph',
@@ -72,6 +75,8 @@
       .createPdf(docDefinition)
       .download('document.pdf');
     }
+
+    
 
     function fifteenMinutesBefore(departureTimeString) {
         const [hours, minutes] = departureTimeString.split(":").map(Number);
