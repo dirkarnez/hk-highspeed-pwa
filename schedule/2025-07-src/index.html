@@ -54,10 +54,10 @@
         const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
         const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
         
-        generate("South", dataForSouth, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
-        generate("North", dataForNorth, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
-        generate("82 Lift", dataFor82Lift, ["train_arrival", "to", "arrival", "train_departure", "gate", "departure"], ['*','*','*','*','*','*']);
-        generate("Short", dataForShort, ["train_departure", "to", "platform", "gate", "departure"], ['*','*','*','*','*']);
+        generate("South", dataForSouth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
+        generate("North", dataForNorth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
+        generate("82 Lift", dataFor82Lift, ["train_arrival", "to", "arrival", "train_departure", "gate", "departure"], ['auto','auto','auto','auto','auto','auto']);
+        generate("Short", dataForShort, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
     }
 
 
