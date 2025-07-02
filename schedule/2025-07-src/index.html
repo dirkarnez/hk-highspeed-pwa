@@ -46,18 +46,38 @@
       };
         const data = await getData()
         .then(data => (
-            data.map(a => ({...a, gate: fifteenMinutesBefore(a["departure"])}))
+            data.map(a => ({
+              ...a, 
+              "gate": `${minusXMinutes(a["departure"], 15)} - ${minusXMinutes(a["departure"], 5)}`,
+            }))
         ));
     
         const dataForShort = data.filter(item => Number(item["platform"]) > 8);
         const dataForSouth = data.filter(item => !(Number(item["platform"]) > 8));
         const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
         const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
+
+        debugger;
         
         generate("South", dataForSouth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
         generate("North", dataForNorth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
         generate("82 Lift", dataFor82Lift, ["train_arrival", "to", "arrival", "train_departure", "gate", "departure"], ['auto','auto','auto','auto','auto','auto']);
         generate("Short", dataForShort, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
+
+        const start = new Date();
+        start.setHours(7);
+        start.setMinutes(0);
+        start.setSeconds(0);
+
+        const end = new Date();
+        end.setHours(14);
+        end.setMinutes(45);
+        end.setSeconds(0);
+
+        for (var t = start; t < end; t.setTime(t.getTime() + 1000)) {
+          console.log(t.toLocaleTimeString())
+        }
+
     }
 
 
@@ -122,12 +142,12 @@
 
     
 
-    function fifteenMinutesBefore(departureTimeString) {
+    function minusXMinutes(departureTimeString, minutesBefore) {
         const [hours, minutes] = departureTimeString.split(":").map(Number);
         
         const date = new Date();
         date.setHours(hours);
-        date.setMinutes(minutes - 15);
+        date.setMinutes(minutes - minutesBefore);
 
         const newHours = String(date.getHours()).padStart(2, '0');
         const newMinutes = String(date.getMinutes()).padStart(2, '0');
