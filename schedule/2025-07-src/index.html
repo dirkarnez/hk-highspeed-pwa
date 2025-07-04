@@ -46,10 +46,17 @@
       };
         const data = await getData()
         .then(data => (
-            data.map(a => ({
-              ...a, 
-              "gate": `${minusXMinutes(a["departure"], 15)} - ${minusXMinutes(a["departure"], 5)}`,
-            }))
+            data.map(a => {
+              const gateOpen = minusXMinutes(a["departure"], 15);
+              const gateClose = minusXMinutes(a["departure"], 5);
+              
+              return ({
+                ...a,
+                "gate_open": gateOpen,
+                "gate_close": gateClose,
+                "gate": `${gateOpen} - ${gateClose}`,
+              })
+            })
         ));
     
         const dataForShort = data.filter(item => Number(item["platform"]) > 8);
@@ -74,18 +81,43 @@
         end.setMinutes(45);
         end.setSeconds(0);
 
-        const gate34 = [];
-        const gate56 = [];
-        const gate78 = [];
-        
+        const valuate = (item) => {
+
+        }
+
+        const inBetween = (t, start, end) => {
+          const [start_h, start_m] = timeStringToHourMinutes(start);
+          const [end_h, end_m] = timeStringToHourMinutes(start);
+
+          const h = t.getHours();
+          const m = t.getMinutes();
+
+          return h >= start_h && m >= start_m && h <= end_h && m <= end_m;
+        }
+
+        const stack = [];
         for (var t = start; t < end; t.setTime(t.getTime() + 60000)) {
-          
+          const a = dataForSouth.filter(item => inBetween(t, item["gate_open"], item["gate_close"]));
+          if (a.length > 1) {
+            console.log("This is unexpected that two train has same departure time")
+          } else {
+            if (stack.length == 0) {
+              stack.push(...a);
+            } else {
+              console.log("occupied")
+            }
+
+          }
+
+          console.log(`${t} ${JSON.stringify(a)}`)
+          valuate()
         }
 
     }
 
 
     function generate(title, data, fields, widths) {
+      return
         // const content = Array.from({ length: 9 }, (_) => {
         //         return {
         //                 table: {
@@ -145,9 +177,13 @@
     }
 
     
+    function timeStringToHourMinutes(timeString) {
+        const [hours, minutes] = timeString.split(":").map(Number);
+        return [hours, minutes];
+    }
 
     function minusXMinutes(departureTimeString, minutesBefore) {
-        const [hours, minutes] = departureTimeString.split(":").map(Number);
+        const [hours, minutes] = timeStringToHourMinutes(departureTimeString);
         
         const date = new Date();
         date.setHours(hours);
