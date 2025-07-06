@@ -49,7 +49,7 @@
             data.map(a => {
               const gateOpen = minusXMinutes(a["departure"], 15);
               const gateClose = minusXMinutes(a["departure"], 5);
-              
+
               return ({
                 ...a,
                 "gate_open": gateOpen,
@@ -64,8 +64,6 @@
         const dataForNorth = dataForSouth.filter(item => Number(item["cars"]) == 16);
         const dataFor82Lift = data.filter(item => Number(item["platform"]) == 4);
 
-        debugger;
-        
         generate("South", dataForSouth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
         generate("North", dataForNorth, ["train_departure", "to", "platform", "gate", "departure"], ['auto','auto','auto','auto','auto']);
         generate("82 Lift", dataFor82Lift, ["train_arrival", "to", "arrival", "train_departure", "gate", "departure"], ['auto','auto','auto','auto','auto','auto']);
@@ -81,36 +79,64 @@
         end.setMinutes(45);
         end.setSeconds(0);
 
-        const valuate = (item) => {
-
-        }
-
-        const inBetween = (t, start, end) => {
-          const [start_h, start_m] = timeStringToHourMinutes(start);
-          const [end_h, end_m] = timeStringToHourMinutes(start);
-
-          const h = t.getHours();
-          const m = t.getMinutes();
-
-          return h >= start_h && m >= start_m && h <= end_h && m <= end_m;
-        }
-
-        const stack = [];
-        for (var t = start; t < end; t.setTime(t.getTime() + 60000)) {
-          const a = dataForSouth.filter(item => inBetween(t, item["gate_open"], item["gate_close"]));
-          if (a.length > 1) {
-            console.log("This is unexpected that two train has same departure time")
-          } else {
-            if (stack.length == 0) {
-              stack.push(...a);
-            } else {
-              console.log("occupied")
+        const valuate = (t, item, recommended) => {
+          if (Array.isArray(recommended) && recommended.length > 0) {
+            if (!!item && isNowOrFuture(t, item["gate_close"])) {
+              return item
             }
 
-          }
+            if (recommended.length == 1 && (!item || recommended[0]["train_departure"] == item["train_departure"])) {
+              return recommended[0]
+            } else {
+              return recommended.reduce((p, c) => {
+                if (!p) {
+                  return c;
+                }
 
-          console.log(`${t} ${JSON.stringify(a)}`)
-          valuate()
+
+                console.log(t.toLocaleTimeString(), item)
+
+                // if working on the gate p, and c is just open, ignore c
+                // 
+                debugger;
+              });
+            }
+          } else {
+            return item
+          }
+        }
+
+        const isNowOrFuture = (t, timeString) => {
+          const [target_h, target_m] = timeStringToHourMinutes(timeString);
+
+          const targetDate = new Date(t);
+
+          targetDate.setHours(target_h, target_m, 0, 0);
+
+          return targetDate >= t;
+        }
+
+        const inBetween = (t, startString, endString) => {
+          const [start_h, start_m] = timeStringToHourMinutes(startString);
+          const [end_h, end_m] = timeStringToHourMinutes(endString);
+
+          const startDate = new Date(t);
+          const endDate = new Date(t);
+
+          startDate.setHours(start_h, start_m, 0, 0);
+          endDate.setHours(end_h, (end_m + 1), 0, 0);
+
+          return t >= startDate && t <= endDate;
+        }
+
+        let workingOn = null;
+        let workingPreviousMinute = null;
+        for (var t = start; t < end; t.setTime(t.getTime() + 60000)) {
+          const recommended = dataForSouth.filter(item => inBetween(t, item["gate_open"], item["gate_close"]));
+          
+          workingOn = valuate(t, workingOn, recommended)
+          
+          console.log(`${t.toLocaleTimeString()} ${recommended.length} ${!!workingOn ? `${workingOn["train_departure"]}: ${workingOn["gate_open"]} - ${workingOn["gate_close"]}` : "Nothing to work on"}`)
         }
 
     }
